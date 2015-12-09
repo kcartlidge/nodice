@@ -1,6 +1,6 @@
 {
   "name": "nodice",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "description": "Node IOC - very simple dependency resolution.",
   "main": "index.js",
   "scripts": {

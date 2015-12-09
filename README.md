@@ -217,6 +217,9 @@ npm test
 
 ## Examples
 
+[You can try it live on the npm page](https://www.npmjs.com/package/nodice).
+This will run the *tonic-example.js* file (which is included).
+
 There is an *example* folder which contains a trivial but
 demonstrative example:
 
