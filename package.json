@@ -1,6 +1,6 @@
 {
   "name": "nodice",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Node IOC - very simple dependency resolution.",
   "main": "index.js",
   "scripts": {
@@ -20,7 +20,7 @@
     "di"
   ],
   "author": "K Cartlidge",
-  "license": "MPL-2.0",
+  "license": "MIT",
   "dependencies": {},
   "devDependencies": {
     "jasmine-node": "^1.14.5",
