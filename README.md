@@ -1,7 +1,7 @@
 # NoDice
 ## Simple Dependency Resolution for Node Modules
 
-By K Cartlidge.
+[By K Cartlidge](http://www.kcartlidge.com).
 
 ### Licence
 
@@ -22,23 +22,27 @@ is start splitting it into smaller modules that you then *require* in.
 Suppose you have a module that checks if a person has permission to
 an area of site functionality:
 
-	var permissionRepository = {
-		canAccessArea: function (personId, area) {
-			return true;
-		}
-	};
-	module.exports = permissionRepository;
+``` javascript
+var permissionRepository = {
+	canAccessArea: function (personId, area) {
+		return true;
+	}
+};
+module.exports = permissionRepository;
+```
 
 That check may need doing in many different places, so each of those
 places will probably end up doing a *require*:
 
-	var permissionRepository = require('../dataAccess/permissionRepository.js');
-	var permissionService = {
-		canAccessAdmin: function (personId) {
-			return permissionRepository.canAccessArea(personId, 'admin');
-		}
-	};
-	module.exports = permissionService;
+``` javascript
+var permissionRepository = require('../dataAccess/permissionRepository.js');
+var permissionService = {
+	canAccessAdmin: function (personId) {
+		return permissionRepository.canAccessArea(personId, 'admin');
+	}
+};
+module.exports = permissionService;
+```
 
 This leads to a proliferation of almost identical require statements,
 all of which need maintaining as you refactor. Multiply this out by the
@@ -53,25 +57,29 @@ In brief, it allows you to register stuff (like modules) just once
 then wherever you use them in your code it makes them available
 automatically.
 
-That's a step too far for a simple solution. And when I say simple,
-I mean simple. Here's an example.
+NoDice does something similar, and simply. And when I say simply,
+I *mean* simply. Here's an example.
 
 **Register Some Modules**
 
-	IOC = require('nodice');
-	IOC.register('constants', require('./constants.js'), true);
-	IOC.register('permissionService', require('./permission-service.js'));
+``` javascript
+IOC = require('nodice');
+IOC.register('constants', require('./constants.js'), true);
+IOC.register('permissionService', require('./permission-service.js'));
+```
 
 Note that the first has *true* at the end. That registers it globally.
 
 **Use Those Modules**
 
-	var permissionService = {
-		canAccessAdmin: function (personId) {
-			return IOC.permissionRepository.canAccessArea(personId, 'admin');
-		}
-	};
-	module.exports = permissionService;
+``` javascript
+var permissionService = {
+	canAccessAdmin: function (personId) {
+		return IOC.permissionRepository.canAccessArea(personId, 'admin');
+	}
+};
+module.exports = permissionService;
+```
 
 This is the same module as before, but there is no *require*. Instead
 we can get the *permissionRepository* directly from *IOC*.
@@ -79,43 +87,53 @@ we can get the *permissionRepository* directly from *IOC*.
 The *constants* module that was registered with *true* at the end is
 available even easier:
 
-	var permissionRepository = {
-		canAccessArea: function (personId, area) {
-			return constants.message;
-		}
-	};
-	module.exports = permissionRepository;
+``` javascript
+var permissionRepository = {
+	canAccessArea: function (personId, area) {
+		return constants.message;
+	}
+};
+module.exports = permissionRepository;
+```
 
 You can simply refer to it directly; once registered it's always
 available.
 
-So why would you ever do the other way? Many people do not like
+Given that you can get it directly, without the IOC prefix,
+why would you ever do it the other way? Many people do not like
 polluting the global namespace. For the benefit it gives, having
 *IOC* there as per the first usage example is a good trade,
 especially given that a naming collision is terribly unlikely
 (why would you have multiple IOC resolutions going on?), but the
-availability of all registrations at the very top is contentious.
-I like it as my naming is pretty obvious and thorough; many don't.
+availability of *all* registrations at the very top is contentious.
+I like it, especially as my naming is usually pretty obvious and
+thorough; many don't so YMMV.
 
 As an aside, there is a third way to get what you need. This is
 really there as a convenience method and not often used:
 
-	var permissionRepository = {
-		canAccessArea: function (personId, area) {
-			return IOC.resolve('constants').message;
-		}
-	};
-	module.exports = permissionRepository;
+``` javascript
+var permissionRepository = {
+	canAccessArea: function (personId, area) {
+		return IOC.resolve('constants').message;
+	}
+};
+module.exports = permissionRepository;
+```
 
 ## Installation
 
 It's an npm module:
 
-	npm install nodice
+``` sh
+npm install nodice
+```
 
 ## Usage:
 
-	var IOC = require('nodice');
+``` javascript
+IOC = require('nodice');
+```
 
 As a general note, be aware that sometimes the order of
 registrations matters. If module B refers to module A at
@@ -125,11 +143,15 @@ it may well be fine for module A to not yet be loaded.
 
 ### register
 
-	IOC.register(name, module, registerGlobally);
+``` javascript
+IOC.register(name, module, registerGlobally);
+```
 
 Example:
 
-	IOC.register('constants', require('./data/constants'), true);
+``` javascript
+IOC.register('constants', require('./data/constants'), true);
+```
 
 *name*
 
@@ -156,19 +178,29 @@ is always available directly (eg constants.ok).
 
 ### resolve
 
-	IOC.resolve(name);
+``` javascript
+IOC.resolve(name);
+```
 
 Example:
 
-	IOC.resolve('permissionService').canAccessArea(1,'admin');
+``` javascript
+IOC.resolve('permissionService').canAccessArea(1,'admin');
+```
 
 This will return the resolution of the dependency requested.
 The name is the textual name provided at registration, which
 may not necessarily be the same as the module's internal name.
 
+**Remember that this is the long-winded optional way to resolve
+the dependency**. You can get it much easier by using one of the
+alternatives shown in the *Use Those Modules* area above.
+
 ### getRegistrations
 
-	IOC.getRegistrations();
+``` javascript
+IOC.getRegistrations();
+```
 
 This returns a simple array of the names that have been
 registered.
@@ -179,11 +211,15 @@ If you glance at the source, you'll see the codebase is very
 small. There is therefore a correspondingly diminutive (but
 complete) set of tests available:
 
-	npm test
+``` sh
+npm test
+```
 
 ## Examples
 
 There is an *example* folder which contains a trivial but
 demonstrative example:
 
-	npm run example
+``` sh
+npm run example
+```
