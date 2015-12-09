@@ -139,7 +139,7 @@ As a general note, be aware that sometimes the order of
 registrations matters. If module B refers to module A at
 the time it is loaded, module A must already be available.
 If it doesn't refer to module A until it is actually used,
-it may well be fine for module A to not yet be loaded.
+it may well be fine for module A to have not yet been loaded.
 
 ### register
 
@@ -158,8 +158,8 @@ IOC.register('constants', require('./data/constants'), true);
 This is the name by which the module will be referred to when
 requested. It should be a valid JavaScript identifier.
 Duplicates (by name) are not registered.
-Name collisions for globally registered modules will throw an
-error.
+Name collisions for globally registered other stuff (things that
+already exist) will throw an error rather than register.
 
 *module*
 
