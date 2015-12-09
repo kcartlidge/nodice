@@ -6,9 +6,14 @@
 ### Licence
 
 [MIT Licence (very permissive)](http://opensource.org/licenses/MIT).
-[GitHub licence summary bullet points](http://choosealicense.com/licenses/mit/).
+[See the GitHub licence summary bullet points here](http://choosealicense.com/licenses/mit/).
 
 A copy of the licence is within the package source.
+
+### Current Status
+
+* Service locator pattern is implemented, stable and usable.
+* Coming shortly - constructor injection.
 
 ### Why do I Need It?
 
