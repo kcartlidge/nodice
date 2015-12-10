@@ -1,4 +1,4 @@
-# NoDice
+# NoDice v0.7.4
 ## Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -12,8 +12,8 @@ A copy of the licence is within the package source.
 
 ### Current Status
 
-* Service locator pattern is implemented, stable and usable.
-* Coming shortly - constructor injection.
+* *Service locator* pattern is implemented, stable and usable.
+* Coming shortly - *constructor injection*.
 
 ### Why do I Need It?
 
@@ -111,11 +111,8 @@ polluting the global namespace. For the benefit it gives, having
 especially given that a naming collision is terribly unlikely
 (why would you have multiple IOC resolutions going on?), but the
 availability of *all* registrations at the very top is contentious.
-I like it, especially as my naming is usually pretty obvious and
-thorough; many don't so YMMV.
 
-As an aside, there is a third way to get what you need. This is
-really there as a convenience method and not often used:
+As an aside, there is a third way to get what you need:
 
 ``` javascript
 var permissionRepository = {
