@@ -43,3 +43,6 @@ console.log(IOC.resolve('constants').welcome);
 var personId = 1;
 var haveAdminAccess = IOC.permissionService.canAccessAdmin(personId);
 console.log(haveAdminAccess ? constants.hasPermission : constants.forbidden);
+
+// To stop Tonic logging 'undefined' at the end.
+return true;
