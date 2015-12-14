@@ -19,6 +19,7 @@ IOC = {
 				var idx = 0;
 				_.each(args, function (arg) {
 					var resolution = container[arg];
+					substitutions[idx] = null;
 					if (resolution) {
 						substitutions[idx] = arg;
 						hasInjections = true;
