@@ -1,13 +1,12 @@
 {
   "name": "nodice",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Node IOC - very simple dependency resolution.",
   "main": "index.js",
   "scripts": {
     "test": "jasmine-node tests --verbose",
     "example": "node example/example.js"
   },
-  "tonicExampleFilename": "tonic-example.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/kcartlidge/nodice.git"

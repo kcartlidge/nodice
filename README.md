@@ -1,4 +1,4 @@
-# NoDice v1.0.0
+# NoDice v1.0.1
 ### Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -85,10 +85,10 @@ then the repository needs registering first.
 
 **Lifetime**
 
-As these are registrations provided by the caller, Nodice does not take
+As these are registrations provided by the caller, NoDice does not take
 responsibility for *lifetime*. As long as they have a reference count
 they are alive. Usually that means they are alive for the lifetime of
-either the Nodice container or the original loader, whichever is the longer.
+either the NoDice container or the original loader, whichever is the longer.
 
 You can register right at the start to a global container, or you could for
 example register a local instance when a web request arrives.
@@ -106,15 +106,10 @@ module.exports = permissionService;
 
 Provided they were all registered, which *permissionRepository* and
 *constants* were, then calling an also-registered *permissionService*
-will work with you only needing to provde the *personId*.
+will work with you only needing to provde the *personId* - NoDice will
+supply the other parameters (and any of their dependencies too).
 
-**The injected parameters must currently appear last!**
-
-As an aside, there is another way to get what you need:
-
-``` javascript
-var constants = IOC.resolve('constants');
-```
+**Injected parameters must currently appear last in the parameter list.**
 
 ## Installation
 
@@ -190,8 +185,8 @@ registered.
 ## Test Coverage
 
 If you glance at the source, you'll see the codebase is very
-small. There is therefore a correspondingly diminutive (but
-complete) set of tests available:
+small. There is therefore a correspondingly diminutive set
+of tests available (about 85% coverage at the moment):
 
 ``` sh
 npm test
@@ -200,10 +195,9 @@ npm test
 ## Examples
 
 The *tonic-example.js* file has been removed as being too
-complex to follow with stubbed modules etc.
-
-There is however an *example* folder which contains a trivial
-but demonstrative example:
+complex to follow with stubbed modules etc. There is however
+an *example* folder which contains a trivial but demonstrative
+example and whose code is simple and instructive:
 
 ``` sh
 npm run example
