@@ -1,4 +1,4 @@
-# NoDice v0.7.9
+# NoDice v1.0.0
 ## Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -11,6 +11,8 @@
 A copy of the licence is within the package source.
 
 ### Current Status
+
+** DO NOT UPGRADE - working but has breaking, undocumented changes including breaking tests. **
 
 * *Service locator* pattern is implemented, stable and usable.
 * Coming shortly - *constructor injection*.
