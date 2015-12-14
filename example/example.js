@@ -1,19 +1,16 @@
 IOC = require('../index.js');
 
-console.log("This is a very short, contrived example.\nCheck the 'example' subfolder.\n");
+console.log("This is a very short, contrived example.");
+console.log("Check the 'example' subfolder.");
+console.log();
 
-// Register without adding to the global object.
-// These will be accessed via either IOC.whatever or IOC.resolve('whatever').
-IOC.register('constants', require('./constants.js'), true);
+// Register. The order is important, due to dependencies.
+IOC.register('constants', require('./constants.js'));
+IOC.register('permissionRepository', require('./permission-repository.js'));
 IOC.register('permissionService', require('./permission-service.js'));
 
-// Register whilst adding to the global object.
-// This can be accessed as if *already* injected directly. Do not place
-// it into your function signature; it just works. If you try to use a
-// classically injected parameter, it will break.
-IOC.register('permissionRepository', require('./permission-repository.js'), true);
+var main = IOC.resolve('permissionService');
 
-// Not registered globally, so use the IOC global instance.
-var personId = 9;
-console.log(IOC.permissionService.canAccessAdmin(personId));
+console.log(main.canAccessAdmin(9));
+console.log(main.canAccessAdmin(10));
 console.log();

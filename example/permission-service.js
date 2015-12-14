@@ -1,9 +1,11 @@
+
 var permissionService = {
 
-	canAccessAdmin: function (personId) {
-		// Repository registered globally, so just start using it.
-		return permissionRepository.canAccessArea(personId, 'admin');
+	canAccessAdmin: function (personId, permissionRepository) {
+		var message = permissionRepository.canAccessArea(personId, 'admin');
+		return "Person ID " + personId + ": " + message;
 	}
 
 };
+
 module.exports = permissionService;

@@ -1,3 +1,5 @@
+var _ = require('lodash');
+var argsList = require('args-list');
 var IOC;
 var container = [];
 
@@ -5,27 +7,42 @@ IOC = {
 
 	// Adds a registration for a module, under the name given.
 	// You can use other objects, but modules are the intention.
-	// If you registerGlobally then the module is available everywhere
-	// with no further setup. Otherwise you'll find it as a property on
-	// the IOC global object or returned via IOC.resolve (by name).
-	register: function (name, module, registerGlobally) {
-		registerGlobally = registerGlobally || false;
+	register: function (name, module) {
+		container[name] = module;
 
-		// Short-circuit registering known-in-advance methods.
-		if (name !== 'register' && name !== 'resolve' && name !== 'getRegistrations'
-			&& typeof(container[name]) === 'undefined') {
+		var hasInjections = false;
+		_.each(Object.keys(module), function (keyName) {
+			var thing = module[keyName];
+			if (typeof (thing) === 'function') {
+				var args = argsList(thing);
+				var substitutions = [];
+				var idx = 0;
+				_.each(args, function (arg) {
+					var resolution = container[arg];
+					if (resolution) {
+						substitutions[idx] = arg;
+						hasInjections = true;
+					}
+					idx += 1;
+				});
 
-			container[name] = module;
-			IOC[name] = module;
-			if (registerGlobally) {
-
-				// Avoid naming clashes.
-				if (global[name]) {
-					throw "Cannot register '" + name + "' module globally (name conflict).";
+				if (hasInjections) {
+					module[keyName] = function () {
+						var args = [];
+						for (var idx = 0; idx < substitutions.length; idx++){
+							if (substitutions[idx]) {
+								args[idx] = IOC.resolve(substitutions[idx]);
+							} else {
+								args[idx] = arguments[idx];
+							}
+						}
+						return thing.apply(module, args);
+					};
 				}
-				global[name] = module;
 			}
-		}
+		});
+
+		return container[name];
 	},
 
 	// Return the module if registered.

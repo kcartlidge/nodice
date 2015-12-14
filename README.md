@@ -1,4 +1,4 @@
-# NoDice v0.7.8
+# NoDice v0.7.9
 ## Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
