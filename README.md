@@ -1,4 +1,4 @@
-# NoDice v1.0.2
+# NoDice v1.0.3
 ### Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -19,7 +19,8 @@ Plain objects are supported, though as this is designed for module-level code on
 
 **Constructor Injection** works if your module is a **factory**, as the *create* method (or equivalent) remains a function that can receive injections.
 
-**Property Injection** is intended for the next point release.
+**Property Injection** is now supported also. Any property at the top level whose *name* matches that of a something registered and whose value is **null** will get an injection.
+Simply declare properties like `permissionRepository:null` and it will just work - provided your dependencies are registered in the correct order.
 
 NoDice is intended for **server** code and requires parameter names to match registrations.
 For this reason, **minification** of parameter names will break the injection.
@@ -29,12 +30,12 @@ An update to support this is relatively imminent.
 
 ## Current Status
 
-* *Parameter injection* for all top-level module/object functions.
-* *Service locator* using `resolve()` for other situations.
+* **Parameter injection** for all top-level module/object functions.
+* **Property injection** based on exported properties with *null* values.
+* **Service locator** using `resolve()` for other situations.
 
 ## Upcoming
 
-* Property injection based on exported properties
 * Dependency parameter positioning enhancements
 * Minification support to not break injections
 
@@ -98,9 +99,11 @@ module.exports = permissionRepository;
 // permission-service.js
 
 var permissionService = {
-	canAccessAdmin: function (personId, permissionRepository, constants) {
-		var message = permissionRepository.canAccessArea(personId, constants.AdminArea);
-		return "Person ID " + personId + " - " + message;
+	constants: null,
+	canAccessAdmin: function (personId, permissionRepository) {
+		var area = permissionService.constants.AdminArea;
+		var message = permissionRepository.canAccessArea(personId, area);
+		return "Person ID " + personId + " in area '" + area + "' - " + message;
 	}
 };
 module.exports = permissionService;
@@ -125,8 +128,8 @@ console.log(permissionService.canAccessAdmin(10));
 
 This will give an output of:
 
-	Person ID 9 - You have permission to this area.
-	Person ID 10 - Sorry, you cannot access this area.
+	Person ID 9 in area 'admin' - You have permission to this area.
+	Person ID 10 in area 'admin' - Sorry, you cannot access this area.
 
 How this works is straightforward.
 
@@ -140,6 +143,8 @@ This isn't a requirement (`container.resolve` would work) but looks nicer.
 
 We then register the three modules, where the names given are the expected function parameter names during injection.
 For example, `permissionService` has a function (`canAccessAdmin`) with a parameter named `permissionRepository`, so the registration of that name would be injected.
+
+That service also has a `constants` property which, being set to *null*, will have the *constants* module injected automatically.
 
 Finally, call a function on something that has been registered - in this case `permissionService.canAccessAdmin`.
 As it is registered, and so are the dependencies, the function is called with the `permissionRepository` and `constants` parameters resolved in the background.

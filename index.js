@@ -13,6 +13,13 @@ IOC = {
 		var hasInjections = false;
 		_.each(Object.keys(module), function (keyName) {
 			var thing = module[keyName];
+			if (thing === null) {
+				var resolution = container[keyName];
+				if (resolution) {
+					module[keyName] = resolution;
+					hasInjections = true;
+				}
+			}
 			if (typeof (thing) === 'function') {
 				var args = argsList(thing);
 				var substitutions = [];

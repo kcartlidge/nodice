@@ -1,9 +1,11 @@
 var assert = require('assert');
 var IOC = require('../index');
 
+var stubProperty = "Hello world!";
 var stubMessageProvider = { greeting: "Hello" };
 var stubModule = {
 	okay: true,
+	testProperty: null,
 	test: function (name, messageProvider) {
 		return messageProvider.greeting + " " + name;
 	}
@@ -20,17 +22,18 @@ describe("The NoDice IOC object", function () {
 	describe("with a registered module", function(){
 		beforeEach(function(){
 			IOC.register('messageProvider', stubMessageProvider);
+			IOC.register('testProperty', stubProperty);
 			IOC.register('testModule', stubModule);
 		});
 
 		it("should add that module to the list of registrations", function () {
 			var registrations = IOC.getRegistrations();
-			assert(registrations[1] === 'testModule');
+			assert(registrations[2] === 'testModule');
 		});
 		it("should not have added a duplicate module (by name) to the registrations", function () {
 			IOC.register('testModule', stubModule);
 			var registrations = IOC.getRegistrations();
-			assert(registrations.length === 2);
+			assert(registrations.length === 3);
 		});
 		it("should be able to resolve the module", function () {
 			var resolution = IOC.resolve('testModule');
@@ -41,6 +44,11 @@ describe("The NoDice IOC object", function () {
 		});
 		it("should inject dependencies into the module", function () {
 			assert(IOC.resolve('testModule').test('Bob') === "Hello Bob");
+		});
+		it("should inject property dependencies into the module", function () {
+			var prop = IOC.resolve('testModule').testProperty;
+			console.log(prop);
+			assert(prop === "Hello world!");
 		});
 	});
 });
