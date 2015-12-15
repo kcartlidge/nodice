@@ -1,4 +1,4 @@
-# NoDice v1.0.3
+# NoDice v1.0.4
 ### Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -71,7 +71,7 @@ container.register('permissionService', require('./permission-service.js'));
 
 ## Dependency Injection
 
-Assume the above `container.register` statements register the following modules:
+Following the example above, we will register the following modules:
 
 ``` javascript
 // constants.js
@@ -109,12 +109,12 @@ var permissionService = {
 module.exports = permissionService;
 ```
 
-Your main **node** entry point may look like this:
+Your main **node** entry point that registers the modules may look like this:
 
 ``` javascript
 // index.js
 
-container = require('../index.js');
+container = require('nodice');
 
 var permissionService = require('./permission-service.js');
 
@@ -172,9 +172,9 @@ The registrations are *by reference* and as long as those references remain (or 
 ## Container Scope
 
 * Declared *without* a `var` a `container` gains global scope.
-* Declare *with* a `var` a `container` is scoped like any other JavaScript object.
+* Declared *with* a `var` a `container` is scoped like any other JavaScript object.
 
-It is therefore possible to have local (or even private module) containers in addition to a possible global one.
+It is therefore possible to have local (or even module-level private) containers in addition to a possible global one.
 
 ## Syntax
 
@@ -230,7 +230,10 @@ registered.
 
 ## Test Coverage
 
-If you glance at the source, you'll see the codebase is compact. There is therefore a correspondingly diminutive set of tests available (about 85% coverage at the moment):
+There is test coverage using **Jasmine**.
+In addition, as I develop using the **Atom** editor I have the package **atom-wallaby** installed which makes use of the *Wallaby* JavaScript continuous test runner. A suitable *wallaby.js* file is present. Wallaby shows full code coverage.
+
+You can run the tests using:
 
 ``` sh
 npm test

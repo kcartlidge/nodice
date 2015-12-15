@@ -1,5 +1,8 @@
+var jasmine = require('jasmine');
+var expect = require('expect');
 var assert = require('assert');
-var IOC = require('../index');
+
+var IOC = require('../lib/index');
 
 var stubProperty = "Hello world!";
 var stubMessageProvider = { greeting: "Hello" };
@@ -41,6 +44,9 @@ describe("The NoDice IOC object", function () {
 		});
 		it("should return the specific module requested", function () {
 			assert(IOC.resolve('testModule').okay);
+		});
+		it("should fail to resolve an unknown module", function () {
+			expect(function(){ IOC.resolve('unknown') }).toThrow();
 		});
 		it("should inject dependencies into the module", function () {
 			assert(IOC.resolve('testModule').test('Bob') === "Hello Bob");

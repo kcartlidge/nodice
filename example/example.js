@@ -1,4 +1,4 @@
-IOC = require('../index.js');
+IOC = require('../lib/index.js');
 
 console.log("This is a very short, contrived example.");
 console.log("Check the 'example' subfolder.");
