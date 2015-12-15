@@ -1,4 +1,4 @@
-# NoDice v1.0.1
+# NoDice v1.0.2
 ### Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
@@ -10,106 +10,39 @@
 
 A copy of the licence is within the package source.
 
+## About NoDice
+
+This is a **Dependency Injection** (DI) package for **Inversion of Control** (IoC).
+It currently does automatic **parameter injection** for all registered **modules**.
+
+Plain objects are supported, though as this is designed for module-level code only the paameters for **top level functions** are injected.
+
+**Constructor Injection** works if your module is a **factory**, as the *create* method (or equivalent) remains a function that can receive injections.
+
+**Property Injection** is intended for the next point release.
+
+NoDice is intended for **server** code and requires parameter names to match registrations.
+For this reason, **minification** of parameter names will break the injection.
+
+An update to support this is relatively imminent.
+
+
 ## Current Status
 
 * *Parameter injection* for all top-level module/object functions.
-* *Service locator* using IOC.resolve() for other situations.
+* *Service locator* using `resolve()` for other situations.
 
-The *parameter injection* facility serves as an enhanced form of
-**constructor injection** in that if your module is a factory then it's
-creation function will have it's dependencies injected.
+## Upcoming
 
-## Why do I Need It?
+* Property injection based on exported properties
+* Dependency parameter positioning enhancements
+* Minification support to not break injections
 
-You don't. But it makes things nicer.
+## Requirements
 
-## What Problem does it Solve?
-
-When your Node projects get bigger one of the first things you do
-is start splitting it into smaller modules that you then *require* in.
-
-Suppose you have a module that checks if a person has permission to
-an area of site functionality:
-
-``` javascript
-var permissionRepository = {
-	canAccessArea: function (personId, area) {
-		return true;
-	}
-};
-module.exports = permissionRepository;
-```
-
-That check may need doing in many different places, so each of those
-places will probably end up doing a *require*:
-
-``` javascript
-var permissionRepository = require('../dataAccess/permissionRepository.js');
-var permissionService = {
-	canAccessAdmin: function (personId) {
-		return permissionRepository.canAccessArea(personId, 'admin');
-	}
-};
-module.exports = permissionService;
-```
-
-This leads to a proliferation of almost identical require statements,
-all of which need maintaining as you refactor. Multiply this out by the
-number of other modules you use and it gets unwieldy quite quickly.
-
-It also makes it tricky to share instances across other modules.
-
-## How Does it Fix Things?
-
-Classically, especially with enterprise-level development, an IOC
-(Inversion of Control) and DI (Dependency Injection) system is used,
-for example AutoFac, Castle Windsor or TinyIoC.
-In brief, it allows you to register stuff (like modules) just once
-then wherever you use them in your code it makes them available
-automatically.
-
-NoDice does something similar, and simply. And when I say simply,
-I *mean* simply. Here's an example.
-
-**Register Some Modules**
-
-``` javascript
-IOC = require('nodice');
-IOC.register('constants', require('./constants.js'));
-IOC.register('permissionRepository', require('./permission-repository.js'));
-IOC.register('permissionService', require('./permission-service.js'));
-```
-
-The order matters. If the *service* needs the *repository* injected,
-then the repository needs registering first.
-
-**Lifetime**
-
-As these are registrations provided by the caller, NoDice does not take
-responsibility for *lifetime*. As long as they have a reference count
-they are alive. Usually that means they are alive for the lifetime of
-either the NoDice container or the original loader, whichever is the longer.
-
-You can register right at the start to a global container, or you could for
-example register a local instance when a web request arrives.
-
-**Use Those Modules**
-
-``` javascript
-var permissionService = {
-	canAccessAdmin: function (personId, permissionRepository, constants) {
-		return permissionRepository.canAccessArea(personId, constants.AdminArea);
-	}
-};
-module.exports = permissionService;
-```
-
-Provided they were all registered, which *permissionRepository* and
-*constants* were, then calling an also-registered *permissionService*
-will work with you only needing to provde the *personId* - NoDice will
-supply the other parameters (and any of their dependencies too).
-
-**Injected parameters must currently appear last in the parameter list.**
+* It's designed for use with **Node**, but **unminified client** JavaScript should be fine.
+* Currently, parameters that are to be injected must be the last parameters listed in a function declaration.
+An update to get around this is under consideration; in the meantime that's mostly an **aesthetics** concern.
 
 ## Installation
 
@@ -119,28 +52,144 @@ It's an npm module:
 npm install nodice
 ```
 
-## Usage:
+## Registering Modules/Objects
+
+Require it as normal; the module exports the *container*:
 
 ``` javascript
-IOC = require('nodice');
+var container = require("nodice");
 ```
 
-### register
+Register your modules, by *unique* name:
 
 ``` javascript
-IOC.register(name, module);
+container.register('constants', require('./constants.js'));
+container.register('permissionRepository', require('./permission-repository.js'));
+container.register('permissionService', require('./permission-service.js'));
 ```
 
-Example:
+## Dependency Injection
+
+Assume the above `container.register` statements register the following modules:
 
 ``` javascript
-IOC.register('constants', require('./data/constants'));
+// constants.js
+
+var constants = {
+	AdminArea: "admin",
+	Okay: "You have permission to this area.",
+	Forbidden: "Sorry, you cannot access this area."
+};
+module.exports = constants;
 ```
 
-* Registration order matters - if *A* needs *B* then *B* must
-be registered first.
+``` javascript
+// permission-repository.js
 
-* For parameters to be injected, they must appear after all others.
+var permissionRepository = {
+	canAccessArea: function (personId, area, constants) {
+		return personId < 10 ? constants.Okay : constants.Forbidden;
+	}
+};
+module.exports = permissionRepository;
+```
+
+``` javascript
+// permission-service.js
+
+var permissionService = {
+	canAccessAdmin: function (personId, permissionRepository, constants) {
+		var message = permissionRepository.canAccessArea(personId, constants.AdminArea);
+		return "Person ID " + personId + " - " + message;
+	}
+};
+module.exports = permissionService;
+```
+
+Your main **node** entry point may look like this:
+
+``` javascript
+// index.js
+
+container = require('../index.js');
+
+var permissionService = require('./permission-service.js');
+
+IOC.register('constants', require('./constants.js'));
+IOC.register('permissionRepository', require('./permission-repository.js'));
+IOC.register('permissionService', permissionService);
+
+console.log(permissionService.canAccessAdmin(9));
+console.log(permissionService.canAccessAdmin(10));
+```
+
+This will give an output of:
+
+	Person ID 9 - You have permission to this area.
+	Person ID 10 - Sorry, you cannot access this area.
+
+How this works is straightforward.
+
+The `container` declaration, as it does not start with `var`, makes a globally-available container.
+There are few cases where this is a good idea; DI *can* be one.
+
+*It is not necessary for the `container` to be global.*
+
+We declare a `permissionService` independent of the container to allow us to call it as normal without needing to `resolve` it first.
+This isn't a requirement (`container.resolve` would work) but looks nicer.
+
+We then register the three modules, where the names given are the expected function parameter names during injection.
+For example, `permissionService` has a function (`canAccessAdmin`) with a parameter named `permissionRepository`, so the registration of that name would be injected.
+
+Finally, call a function on something that has been registered - in this case `permissionService.canAccessAdmin`.
+As it is registered, and so are the dependencies, the function is called with the `permissionRepository` and `constants` parameters resolved in the background.
+
+*Remember - only the top level functions of a registered module/object receive injections.*
+
+## Ordering of Registrations
+
+This matters.
+
+When something is registered, if the thing to be injected into a function parameter within it has not also been registered then no injection is set up for that parameter.
+
+Whilst this does not instantly break things, it does mean that when you finally call a function with such a parameter then that parameter will either need passing manually or will be `undefined`.
+
+In our example above, `permissionService` has `permissionRepository` injected into one of it's functions.
+Therefore, `permissionRepository` is registered first.
+
+## Lifetime
+
+The `container` will stay in scope as long as it has at least one registration within it where the thing registered also still has a reference.
+
+In other words, unlike with say C# containers there is no *lifetime* enumeration/declaration.
+The registrations are *by reference* and as long as those references remain (or the container/registration is in scope) so do the registrations.
+
+## Container Scope
+
+* Declared *without* a `var` a `container` gains global scope.
+* Declare *with* a `var` a `container` is scoped like any other JavaScript object.
+
+It is therefore possible to have local (or even private module) containers in addition to a possible global one.
+
+## Syntax
+
+**Reference the Module**
+
+``` javascript
+container = require('nodice');
+```
+
+or
+
+``` javascript
+var container = require('nodice');
+```
+
+**Register a Dependency**
+
+``` javascript
+container.register(name, module);
+```
 
 *name*
 
@@ -153,30 +202,22 @@ Usually the returned result of a *require* statement.
 This is the module/object which will be returned when the
 registration is resolved.
 
-### resolve
+**Optional Manual Resolve**
 
 ``` javascript
-IOC.resolve(name);
-```
-
-Example:
-
-``` javascript
-IOC.resolve('permissionService').canAccessArea(1,'admin');
+var thing = container.resolve(name);
+return thing.canAccessArea(1, constants.AdminArea);
 ```
 
 This will return the resolution of the dependency requested.
-The name is the textual name provided at registration, which
-may not necessarily be the same as the module's internal name.
+The name is the textual name provided at registration, which may not necessarily be the same as the module's internal name.
 
-**Remember that this is the long-winded optional way to resolve
-the dependency**. You can get it much easier by using parameter
-injection.
+If the thing being resolved also has injections, they will be actioned automatically.
 
-### getRegistrations
+**Check Registered Modules**
 
 ``` javascript
-IOC.getRegistrations();
+var registrations = container.getRegistrations();
 ```
 
 This returns a simple array of the names that have been
@@ -184,9 +225,7 @@ registered.
 
 ## Test Coverage
 
-If you glance at the source, you'll see the codebase is very
-small. There is therefore a correspondingly diminutive set
-of tests available (about 85% coverage at the moment):
+If you glance at the source, you'll see the codebase is compact. There is therefore a correspondingly diminutive set of tests available (about 85% coverage at the moment):
 
 ``` sh
 npm test
@@ -194,10 +233,7 @@ npm test
 
 ## Examples
 
-The *tonic-example.js* file has been removed as being too
-complex to follow with stubbed modules etc. There is however
-an *example* folder which contains a trivial but demonstrative
-example and whose code is simple and instructive:
+There is an *example* folder which contains a trivial but demonstrative example (based on the examples above) and whose code is both simple and instructive:
 
 ``` sh
 npm run example
