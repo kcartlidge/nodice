@@ -1,7 +1,11 @@
-# NoDice v1.0.5
+# NoDice v1.0.6
+
 ### Simple Dependency Resolution for Node Modules
 
 [By K Cartlidge](http://www.kcartlidge.com).
+
+[Available on npm](https://www.npmjs.com/package/nodice)
+with the [source on github](https://github.com/kcartlidge/nodice).
 
 ## Licence
 
@@ -12,21 +16,16 @@ A copy of the licence is within the package source.
 
 ## About NoDice
 
-This is a **Dependency Injection** (DI) package for **Inversion of Control** (IoC).
-It currently does automatic **parameter injection** for all registered **modules**.
+This is a **Dependency Injection** (DI) package for **Inversion of Control** (IoC) operating at the *module* level. It currently does automatic **parameter injection** for all registered **modules**, plus property injection for visible properties having known names.
 
-Plain objects are supported, though as this is designed for module-level code only the paameters for **top level functions** are injected.
+In addition to modules plain JavaScript objects are supported, though as this is designed for module-level code only the parameters for **top level functions** are injected.
 
-**Constructor Injection** works if your module is a **factory**, as the *create* method (or equivalent) remains a function that can receive injections.
+**Constructor Injection** works if your module is a **factory**, as the *create* method (or equivalent) is effectivly a module function that can receive injected parameters.
 
-**Property Injection** is now supported also. Any property at the top level whose *name* matches that of a something registered and whose value is **null** will get an injection.
+**Property Injection** is now supported also. Any property at the top level whose *name* matches that of a something registered *and* whose value is **null** will get an injection.
 Simply declare properties like `permissionRepository:null` and it will just work - provided your dependencies are registered in the correct order.
 
-NoDice is intended for **server** code and requires parameter names to match registrations.
-For this reason, **minification** of parameter names will break the injection.
-
-An update to support this is relatively imminent.
-
+NoDice is intended for **server** code and requires parameter names to match the *names* of registrations. For this reason, **minification** of parameter names will break the injection as the names will no longer match.
 
 ## Current Status
 
@@ -34,16 +33,10 @@ An update to support this is relatively imminent.
 * **Property injection** based on exported properties with *null* values.
 * **Service locator** using `resolve()` for other situations.
 
-## Upcoming
-
-* Dependency parameter positioning enhancements
-* Minification support to not break injections
-
 ## Requirements
 
 * It's designed for use with **Node**, but **unminified client** JavaScript should be fine.
-* Currently, parameters that are to be injected must be the last parameters listed in a function declaration.
-An update to get around this is under consideration; in the meantime that's mostly an **aesthetics** concern.
+* Currently, parameter(s) that are to be injected must be the last parameter(s) listed in a function declaration. This is mostly an **aesthetics** concern.
 
 ## Installation
 
@@ -53,121 +46,13 @@ It's an npm module:
 npm install nodice
 ```
 
-## Registering Modules/Objects
+## Using nodice
 
-Require it as normal; the module exports the *container*:
-
-``` javascript
-var container = require("nodice");
-```
-
-Register your modules, by *unique* name:
-
-``` javascript
-container.register('constants', require('./constants.js'));
-container.register('permissionRepository', require('./permission-repository.js'));
-container.register('permissionService', require('./permission-service.js'));
-```
-
-## Dependency Injection
-
-Following the example above, we will register the following modules:
-
-``` javascript
-// constants.js
-
-var constants = {
-	AdminArea: "admin",
-	Okay: "You have permission to this area.",
-	Forbidden: "Sorry, you cannot access this area."
-};
-module.exports = constants;
-```
-
-``` javascript
-// permission-repository.js
-
-var permissionRepository = {
-	canAccessArea: function (personId, area, constants) {
-		return personId < 10 ? constants.Okay : constants.Forbidden;
-	}
-};
-module.exports = permissionRepository;
-```
-
-``` javascript
-// permission-service.js
-
-var permissionService = {
-	constants: null,
-	canAccessAdmin: function (personId, permissionRepository) {
-		var area = permissionService.constants.AdminArea;
-		var message = permissionRepository.canAccessArea(personId, area);
-		return "Person ID " + personId + " in area '" + area + "' - " + message;
-	}
-};
-module.exports = permissionService;
-```
-
-Your main **node** entry point that registers the modules may look like this:
-
-``` javascript
-// index.js
-
-container = require('nodice');
-
-var permissionService = require('./permission-service.js');
-
-IOC.register('constants', require('./constants.js'));
-IOC.register('permissionRepository', require('./permission-repository.js'));
-IOC.register('permissionService', permissionService);
-
-console.log(permissionService.canAccessAdmin(9));
-console.log(permissionService.canAccessAdmin(10));
-```
-
-This will give an output of:
-
-	Person ID 9 in area 'admin' - You have permission to this area.
-	Person ID 10 in area 'admin' - Sorry, you cannot access this area.
-
-How this works is straightforward.
-
-The `container` declaration, as it does not start with `var`, makes a globally-available container.
-There are few cases where this is a good idea; DI *can* be one.
-
-*It is not necessary for the `container` to be global.*
-
-We declare a `permissionService` independent of the container to allow us to call it as normal without needing to `resolve` it first.
-This isn't a requirement (`container.resolve` would work) but looks nicer.
-
-We then register the three modules, where the names given are the expected function parameter names during injection.
-For example, `permissionService` has a function (`canAccessAdmin`) with a parameter named `permissionRepository`, so the registration of that name would be injected.
-
-That service also has a `constants` property which, being set to *null*, will have the *constants* module injected automatically.
-
-Finally, call a function on something that has been registered - in this case `permissionService.canAccessAdmin`.
-As it is registered, and so are the dependencies, the function is called with the `permissionRepository` and `constants` parameters resolved in the background.
-
-*Remember - only the top level functions of a registered module/object receive injections.*
-
-## Ordering of Registrations
-
-This matters.
-
-When something is registered, if the thing to be injected into a function parameter within it has not also been registered then no injection is set up for that parameter.
-
-Whilst this does not instantly break things, it does mean that when you finally call a function with such a parameter then that parameter will either need passing manually or will be `undefined`.
-
-In our example above, `permissionService` has `permissionRepository` injected into one of it's functions.
-Therefore, `permissionRepository` is registered first.
+In the ```example``` subfolder there is an example of a multi-layered codebase with a presentation layer, service, repository and constants. That example includes another *README* file with fuller details.
 
 ## Lifetime
 
-The `container` will stay in scope as long as it has at least one registration within it where the thing registered also still has a reference.
-
-In other words, unlike with say C# containers there is no *lifetime* enumeration/declaration.
-The registrations are *by reference* and as long as those references remain (or the container/registration is in scope) so do the registrations.
+The dependency `container`, unlike with C# containers (for example) has no *lifetime* enumeration/declaration. The registrations are *by reference* and as long as those references remain (or the container/registration is in scope), so do the registrations.
 
 ## Container Scope
 
@@ -178,16 +63,18 @@ It is therefore possible to have local (or even module-level private) containers
 
 ## Syntax
 
+It is strongly recommended that you check the ```example``` subfolder's code and README for clarity; usage is simpler than the syntax might imply.
+
 **Reference the Module**
 
 ``` javascript
-container = require('nodice');
+container = require('nodice');       // global
 ```
 
 or
 
 ``` javascript
-var container = require('nodice');
+var container = require('nodice');   // scoped
 ```
 
 **Register a Dependency**
@@ -198,14 +85,13 @@ container.register(name, module);
 
 *name*
 
-This is the name by which the module will be referred to when
-requested. It should be a valid, unique JavaScript identifier.
+This is the name by which the module will be referred to when requested or when a property/parameter is matched for automatic injection. It should be a valid, unique JavaScript identifier.
 
 *module*
 
-Usually the returned result of a *require* statement.
-This is the module/object which will be returned when the
-registration is resolved.
+Usually the returned result of a *require* statement, this is the module/object which will be returned when the registration is resolved.
+
+Due to the nature of Node modules this should either be treated as a singleton or coded as a factory.
 
 **Optional Manual Resolve**
 
@@ -214,8 +100,7 @@ var thing = container.resolve(name);
 return thing.canAccessArea(1, constants.AdminArea);
 ```
 
-This will return the resolution of the dependency requested.
-The name is the textual name provided at registration, which may not necessarily be the same as the module's internal name.
+This will return the resolution of the dependency requested. The name is the textual name provided at registration, which may not necessarily be the same as the module's internal name.
 
 If the thing being resolved also has injections, they will be actioned automatically.
 
@@ -225,13 +110,12 @@ If the thing being resolved also has injections, they will be actioned automatic
 var registrations = container.getRegistrations();
 ```
 
-This returns a simple array of the names that have been
-registered.
+This returns a simple array of the names that have been registered.
 
 ## Test Coverage
 
 There is test coverage using **Jasmine**.
-In addition, as I develop using the **Atom** editor I have the package **atom-wallaby** installed which makes use of the *Wallaby* JavaScript continuous test runner. A suitable *wallaby.js* file is present. Wallaby shows full code coverage.
+In addition I make use of the *Wallaby* JavaScript continuous test runner. A suitable *wallaby.js* file is present. Wallaby shows full code coverage.
 
 You can run the tests using:
 
@@ -241,8 +125,10 @@ npm test
 
 ## Examples
 
-There is an *example* folder which contains a trivial but demonstrative example (based on the examples above) and whose code is both simple and instructive:
+There is an *example* subfolder which contains a trivial but demonstrative example (based on the examples above) and whose code is both simple and instructive:
 
 ``` sh
 npm run example
 ```
+
+It has it's own README with more information.

@@ -1,21 +1,20 @@
-IOC = require('../lib/index.js');
+// Get a container from our DI registration module (where the magic is set up).
+var container = require("./dependency-registration.js");
 
-console.log("This is a very short, contrived example.");
-console.log("Check the 'example' subfolder.");
+// Get the entry point of our codebase.
+var ui = container.resolve("ui");
+
+console.log();
+console.log("This is a very short, contrived example. Check the 'example' subfolder.");
 console.log();
 
-// The permissionService is the entry point for this example.
-// It is required separately so can be both registered and used normally.
-var permissionService = require('./permission-service.js');
+var userWithAdminRights = 1;
+var userWithoutAdminRights = 10;
 
-// Register things that either are or use dependencies (order matters).
-// The first two are just required in, as they are not needed outside of the DI.
-IOC.register('constants', require('./constants.js'));
-IOC.register('permissionRepository', require('./permission-repository.js'));
-IOC.register('permissionService', permissionService);
+// Perform a couple of sample calls to the presentation layer.
+// We only pass the userId as, given that the ui module is registered within the
+// container, nodice is able to fill in the remaining parameters.
+ui.showAdminAccessDetails(userWithAdminRights);
+ui.showAdminAccessDetails(userWithoutAdminRights);
 
-// Run the examples using the injected stuff.
-// They are set up so IDs < 10 have access and 10+ don't.
-console.log(permissionService.canAccessAdmin(9));
-console.log(permissionService.canAccessAdmin(10));
 console.log();
